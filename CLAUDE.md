@@ -13,6 +13,10 @@ Portfolio project for data science / real estate internships. Three parts:
 - Single-family homes and condo units, qualified (arms-length) sales, 2019–2025
 - Build: `python src/build_sales.py` -> data/processed/sales_{all,sf,condo}.parquet
 - Price per sq ft uses HEATED area (GIS); NAL `LivingArea` is total area under roof (renamed total_area)
+- Storm-damaged sales (qual 03 + sale_chg_cd 5) are KEPT, flagged `damaged_sale`: price model drops them,
+  DiD reports with and without (dropping them = survivor bias)
+- Location fixed effects: use Census `block_group`, NOT appraiser `neighborhood` (neighborhoods are drawn
+  by waterfront type and absorb waterfront/flood variation). Helpers in src/hedonic.py, style in src/plotting.py
 - Data: Florida DOR tax roll files (NAL/SDF) and/or Lee County Property Appraiser
   downloads, FEMA NFHL flood zones, Census ACS, FRED mortgage rates
 

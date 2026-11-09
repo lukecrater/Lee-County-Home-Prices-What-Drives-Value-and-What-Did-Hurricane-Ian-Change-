@@ -219,11 +219,20 @@ def _funnel(steps: dict) -> pd.DataFrame:
     return f
 
 
-def _trim_ppsf(df: pd.DataFrame, lo=0.005, hi=0.995) -> pd.DataFrame:
-    """Drop extreme price-per-sq-ft within each sale year (data errors, partial interests)."""
-    q = df.groupby("sale_yr")["price_per_sqft"].quantile([lo, hi]).unstack()
+def _trim_ppsf(df: pd.DataFrame, lo=0.005, hi=0.995, damaged_floor=10_000) -> pd.DataFrame:
+    """Drop extreme price-per-sq-ft within each sale year (data errors, partial interests).
+
+    Bounds come from undamaged sales only. Storm-damaged homes legitimately sell far below
+    normal $/sqft (some are effectively land sales), so they get only the upper bound plus a
+    nominal-price floor; the lower bound would delete exactly the effect Part 2 measures.
+    """
+    normal = df[~df["damaged_sale"]]
+    q = normal.groupby("sale_yr")["price_per_sqft"].quantile([lo, hi]).unstack()
     b = q.reindex(df["sale_yr"]).to_numpy()
-    return df[(df["price_per_sqft"] >= b[:, 0]) & (df["price_per_sqft"] <= b[:, 1])]
+    upper_ok = df["price_per_sqft"] <= b[:, 1]
+    lower_ok = np.where(df["damaged_sale"], df["sale_price"] >= damaged_floor,
+                        df["price_per_sqft"] >= b[:, 0])
+    return df[upper_ok & lower_ok]
 
 
 def impute_heated_area(d: pd.DataFrame) -> pd.DataFrame:
@@ -247,7 +256,13 @@ def clean_residential(sales_all: pd.DataFrame, cls: str) -> tuple[pd.DataFrame, 
     s["all sales 2019-2025"] = d = sales_all
     s[f"property class = {cls}"] = d = d[d["property_class"] == cls]
     s["improved (not vacant land)"] = d = d[d["vac_imp"] == "I"]
-    s["qualified arm's-length (01/02)"] = d = d[d["qual_cd"].isin(["01", "02"])]
+    # Homes sold storm-damaged are arm's-length but coded 03 ("property changed") with
+    # sale_chg_cd 5 (disaster). Excluding them would drop the hardest-hit flood-zone homes
+    # after Ian (11% of post-Ian SFHA sales) -- survivor bias. Keep them, flagged; the price
+    # model (Part 1) filters them out, the DiD (Part 2) reports with and without.
+    damaged = (d["qual_cd"] == "03") & (d["sale_chg_cd"] == "5")
+    s["qualified arm's-length (01/02, or 03 storm-damaged)"] = d = (
+        d[d["qual_cd"].isin(["01", "02"]) | damaged].assign(damaged_sale=damaged))
     s["single-parcel sale"] = d = d[~d["multi_parcel"]]
     s["tax-roll total area > 0"] = d = d[d["total_area"] > 0]
     # Price per sq ft is quoted on HEATED area. It comes from the Feb-2024 GIS snapshot, so a
