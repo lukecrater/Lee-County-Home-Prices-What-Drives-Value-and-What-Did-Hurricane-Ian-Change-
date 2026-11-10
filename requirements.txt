@@ -1,0 +1,21 @@
+# Core data stack
+pandas==3.0.6
+numpy==2.5.3
+pyarrow==25.0.1
+
+# Geospatial (parcel <-> flood zone joins)
+geopandas==1.2.0
+pyogrio==0.13.0
+
+# Modeling
+scikit-learn==1.9.1
+statsmodels==0.15.0
+
+# Plotting
+matplotlib==3.11.2
+seaborn==0.13.2
+
+# Downloads + notebooks
+requests==2.34.2
+jupyter==1.1.1
+shap==0.54.1
