@@ -21,6 +21,9 @@ Portfolio project for data science / real estate internships. Three parts:
   training month); settings chosen on 2024 validation, never on the test year. GB uses numeric inputs only
   (SHAP mis-attributes sklearn native categorical splits); TargetEncoder folds must be seeded (KFold) for
   reproducibility
+- DiD (src/did.py): main sample = undamaged SF sales Jan 2019 - Sep 2024 (pre-Helene); treatment = 2008 SFHA
+- Condo (src/condo.py): building ID = STRAP[:13] + year built + stories; triple difference (old tall vs old
+  short); result is NOT robust to pre-law trends -> reported as inconclusive
 - Data: Florida DOR tax roll files (NAL/SDF) and/or Lee County Property Appraiser
   downloads, FEMA NFHL flood zones, Census ACS, FRED mortgage rates
 
