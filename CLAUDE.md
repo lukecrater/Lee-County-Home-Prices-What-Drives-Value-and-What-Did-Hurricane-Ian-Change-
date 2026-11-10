@@ -17,6 +17,10 @@ Portfolio project for data science / real estate internships. Three parts:
   DiD reports with and without (dropping them = survivor bias)
 - Location fixed effects: use Census `block_group`, NOT appraiser `neighborhood` (neighborhoods are drawn
   by waterfront type and absorb waterfront/flood variation). Helpers in src/hedonic.py, style in src/plotting.py
+- Price model (src/price_model.py): TIME split only (train <2025, test 2025, market clock frozen at last
+  training month); settings chosen on 2024 validation, never on the test year. GB uses numeric inputs only
+  (SHAP mis-attributes sklearn native categorical splits); TargetEncoder folds must be seeded (KFold) for
+  reproducibility
 - Data: Florida DOR tax roll files (NAL/SDF) and/or Lee County Property Appraiser
   downloads, FEMA NFHL flood zones, Census ACS, FRED mortgage rates
 

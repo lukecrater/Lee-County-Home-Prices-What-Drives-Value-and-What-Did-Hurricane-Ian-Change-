@@ -18,3 +18,4 @@ seaborn==0.13.2
 # Downloads + notebooks
 requests==2.34.2
 jupyter==1.1.1
+shap==0.54.1
